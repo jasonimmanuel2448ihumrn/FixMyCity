@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixMyCity — Local Backend Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">🏛️</div>
+        <div>
+          <div class="brand-title">FixMyCity</div>
+          <div class="brand-subtitle">Backend Server & Admin</div>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="reports">
+          <span class="icon">📋</span> Reports
+        </button>
+        <button class="nav-item" data-tab="create-report">
+          <span class="icon">➕</span> Create Report
+        </button>
+        <button class="nav-item" data-tab="notifications">
+          <span class="icon">🔔</span> Notifications
+        </button>
+        <button class="nav-item" data-tab="users">
+          <span class="icon">👥</span> Users
+        </button>
+        <button class="nav-item" data-tab="api-docs">
+          <span class="icon">⚡</span> API Reference
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="server-status">
+          <span class="status-dot online"></span>
+          <span>Backend Online (:8080)</span>
+        </div>
+        <button class="btn btn-outline btn-sm btn-block" id="reset-db-btn" title="Reset to default seed data">
+          ↺ Reset Demo Data
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-header">
+        <div>
+          <h1 id="page-title">Civic Reports Management</h1>
+          <p class="text-muted" id="page-subtitle">Real-time reports database connected to the Android app</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary btn-sm" id="refresh-btn">🔄 Refresh</button>
+        </div>
+      </header>
+
+      <!-- Stats Bar -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Reports</div>
+          <div class="stat-value" id="stat-total">0</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-label">In Progress / Review</div>
+          <div class="stat-value" id="stat-in-progress">0</div>
+        </div>
+        <div class="stat-card success">
+          <div class="stat-label">Resolved Issues</div>
+          <div class="stat-value" id="stat-resolved">0</div>
+        </div>
+        <div class="stat-card info">
+          <div class="stat-label">Registered Users</div>
+          <div class="stat-value" id="stat-users">0</div>
+        </div>
+      </div>
+
+      <!-- Tab: Reports -->
+      <section class="tab-content active" id="tab-reports">
+        <div class="toolbar">
+          <input type="text" class="search-input" id="report-search" placeholder="Search reports by title, category, or location...">
+          <select class="select-input" id="status-filter">
+            <option value="All">All Statuses</option>
+            <option value="SUBMITTED">Submitted</option>
+            <option value="UNDER_REVIEW">Under Review</option>
+            <option value="ASSIGNED">Assigned</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="RESOLVED">Resolved</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+          <select class="select-input" id="category-filter">
+            <option value="All">All Categories</option>
+          </select>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Title & Description</th>
+                <th>Location</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reports-table-body">
+              <tr><td colspan="7" class="text-center">Loading reports...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab: Create Report -->
+      <section class="tab-content" id="tab-create-report">
+        <div class="card form-card">
+          <h2>Create Civic Report (Simulate Submission)</h2>
+          <p class="text-muted">Submitting a report here will instantly store it and reflect in the mobile app.</p>
+          <form id="create-report-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Category *</label>
+                <select class="form-input" id="new-category" required></select>
+              </div>
+              <div class="form-group">
+                <label>Location *</label>
+                <input type="text" class="form-input" id="new-location" placeholder="e.g. Sector 17, Vashi" required value="Vashi Sector 17, Navi Mumbai">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Report Title</label>
+              <input type="text" class="form-input" id="new-title" placeholder="e.g. Broken streetlight on 2nd cross">
+            </div>
+            <div class="form-group">
+              <label>Description *</label>
+              <textarea class="form-input" id="new-description" rows="4" placeholder="Detailed description of the civic problem..." required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Image (Optional)</label>
+              <input type="file" id="new-image" accept="image/*" class="form-input">
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Report to Database</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Tab: Notifications -->
+      <section class="tab-content" id="tab-notifications">
+        <div class="toolbar">
+          <button class="btn btn-primary btn-sm" id="mark-all-read-btn">Mark All Read</button>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+          <div class="text-center">Loading notifications...</div>
+        </div>
+      </section>
+
+      <!-- Tab: Users -->
+      <section class="tab-content" id="tab-users">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Reports Submitted</th>
+                <th>Resolved</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab: API Docs -->
+      <section class="tab-content" id="tab-api-docs">
+        <div class="card">
+          <h2>REST API Documentation for FixMyCity</h2>
+          <p class="text-muted">Android app communicates with these endpoints over HTTP.</p>
+          <div class="endpoint-list">
+            <div class="endpoint-item">
+              <span class="badge get">GET</span> <code>/api/reports</code>
+              <p>Query reports with filters: <code>?category=</code>, <code>?status=</code>, <code>?search=</code></p>
+            </div>
+            <div class="endpoint-item">
+              <span class="badge post">POST</span> <code>/api/reports</code>
+              <p>Submit new report: <code>{ category, description, location, title, imageUrl, userId }</code></p>
+            </div>
+            <div class="endpoint-item">
+              <span class="badge get">GET</span> <code>/api/reports/:id</code>
+              <p>Get full report details and timeline history</p>
+            </div>
+            <div class="endpoint-item">
+              <span class="badge patch">PATCH</span> <code>/api/reports/:id/status</code>
+              <p>Update report status: <code>{ status: 'IN_PROGRESS' | 'RESOLVED', note: '...' }</code></p>
+            </div>
+            <div class="endpoint-item">
+              <span class="badge post">POST</span> <code>/api/auth/login</code>
+              <p>User login: <code>{ email, password }</code></p>
+            </div>
+            <div class="endpoint-item">
+              <span class="badge post">POST</span> <code>/api/auth/signup</code>
+              <p>User registration: <code>{ name, email, phone, password }</code></p>
+            </div>
+            <div class="endpoint-item">
+              <span class="badge get">GET</span> <code>/api/notifications</code>
+              <p>Get user notifications</p>
+            </div>
+            <div class="endpoint-item">
+              <span class="badge get">GET</span> <code>/api/stats</code>
+              <p>Get system impact statistics</p>
+            </div>
+            <div class="endpoint-item">
+              <span class="badge post">POST</span> <code>/api/upload</code>
+              <p>Upload image multipart form</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Status Update Modal -->
+  <div class="modal" id="status-modal">
+    <div class="modal-content">
+      <h3>Update Report Status</h3>
+      <p id="modal-report-title" class="text-muted"></p>
+      <div class="form-group">
+        <label>New Status</label>
+        <select class="form-input" id="modal-status-select">
+          <option value="SUBMITTED">Submitted</option>
+          <option value="UNDER_REVIEW">Under Review</option>
+          <option value="ASSIGNED">Assigned</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="RESOLVED">Resolved</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status Update Note (Optional)</label>
+        <input type="text" class="form-input" id="modal-status-note" placeholder="e.g. Repair team has arrived on site">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="modal-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="modal-save-btn">Update Status</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

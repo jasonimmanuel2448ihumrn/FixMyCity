@@ -1,0 +1,25 @@
+{
+  "name": "fixmycity-backend",
+  "version": "1.0.0",
+  "description": "Local REST API Backend and Admin Dashboard for FixMyCity app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "fixmycity",
+    "backend",
+    "civic",
+    "rest-api",
+    "android"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "firebase-admin": "^14.3.0",
+    "multer": "^1.4.5-lts.1"
+  }
+}

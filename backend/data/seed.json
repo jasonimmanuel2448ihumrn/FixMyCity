@@ -1,0 +1,443 @@
+{
+  "users": [
+    {
+      "id": "user_1",
+      "name": "Rahul Sharma",
+      "email": "rahul.sharma@gmail.com",
+      "phone": "+91 98765 43210",
+      "password": "password123",
+      "role": "Citizen",
+      "avatarUrl": null,
+      "reportsSubmitted": 12,
+      "reportsResolved": 8,
+      "createdAt": "2026-08-01T10:00:00Z"
+    },
+    {
+      "id": "user_2",
+      "name": "Priya Patel",
+      "email": "priya.patel@gmail.com",
+      "phone": "+91 98201 12345",
+      "password": "password123",
+      "role": "Citizen",
+      "avatarUrl": null,
+      "reportsSubmitted": 5,
+      "reportsResolved": 3,
+      "createdAt": "2026-08-05T14:30:00Z"
+    },
+    {
+      "id": "user_3",
+      "name": "Amit Verma",
+      "email": "amit.verma@outlook.com",
+      "phone": "+91 97654 67890",
+      "password": "password123",
+      "role": "Citizen",
+      "avatarUrl": null,
+      "reportsSubmitted": 3,
+      "reportsResolved": 2,
+      "createdAt": "2026-08-10T09:15:00Z"
+    },
+    {
+      "id": "user_4",
+      "name": "Neha Deshmukh",
+      "email": "neha.deshmukh@gmail.com",
+      "phone": "+91 99300 54321",
+      "password": "password123",
+      "role": "Citizen",
+      "avatarUrl": null,
+      "reportsSubmitted": 4,
+      "reportsResolved": 1,
+      "createdAt": "2026-08-12T11:00:00Z"
+    },
+    {
+      "id": "guest",
+      "name": "Guest",
+      "email": "guest@fixmycity.org",
+      "phone": "",
+      "password": "",
+      "role": "Guest",
+      "avatarUrl": null,
+      "reportsSubmitted": 1,
+      "reportsResolved": 0,
+      "createdAt": "2026-08-15T00:00:00Z"
+    }
+  ],
+  "reports": [
+    {
+      "id": "r1",
+      "title": "Pothole on Main Road",
+      "description": "Large pothole causing traffic disruption and vehicle damage. Needs immediate attention.",
+      "category": "Pothole",
+      "location": "Vashi Sector 17, Navi Mumbai",
+      "date": "Aug 15, 2026",
+      "status": "IN_PROGRESS",
+      "imageUrl": "/uploads/stock_pothole.jpg",
+      "userId": "user_1",
+      "userName": "Rahul Sharma",
+      "timelineSteps": [
+        {
+          "status": "SUBMITTED",
+          "label": "Submitted",
+          "date": "Aug 15, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "UNDER_REVIEW",
+          "label": "Under Review",
+          "date": "Aug 16, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "ASSIGNED",
+          "label": "Assigned",
+          "date": "Aug 17, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "IN_PROGRESS",
+          "label": "In Progress",
+          "date": "Aug 18, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "RESOLVED",
+          "label": "Resolved",
+          "date": null,
+          "isCompleted": false
+        }
+      ],
+      "createdAt": "2026-08-15T09:30:00Z"
+    },
+    {
+      "id": "r2",
+      "title": "Garbage Near Market Road",
+      "description": "Garbage pile not cleared for 3 days causing health hazard.",
+      "category": "Garbage",
+      "location": "Vashi Market, Navi Mumbai",
+      "date": "Aug 18, 2026",
+      "status": "RESOLVED",
+      "imageUrl": "/uploads/stock_garbage.jpg",
+      "userId": "user_2",
+      "userName": "Priya Patel",
+      "timelineSteps": [
+        {
+          "status": "SUBMITTED",
+          "label": "Submitted",
+          "date": "Aug 18, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "UNDER_REVIEW",
+          "label": "Under Review",
+          "date": "Aug 19, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "ASSIGNED",
+          "label": "Assigned",
+          "date": "Aug 19, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "IN_PROGRESS",
+          "label": "In Progress",
+          "date": "Aug 20, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "RESOLVED",
+          "label": "Resolved",
+          "date": "Aug 21, 2026",
+          "isCompleted": true
+        }
+      ],
+      "createdAt": "2026-08-18T11:15:00Z"
+    },
+    {
+      "id": "r3",
+      "title": "Broken Streetlight",
+      "description": "Streetlight has been broken for 2 weeks creating safety issues at night.",
+      "category": "Streetlight",
+      "location": "Sector 10, Navi Mumbai",
+      "date": "Aug 20, 2026",
+      "status": "UNDER_REVIEW",
+      "imageUrl": "/uploads/stock_streetlight.jpg",
+      "userId": "user_3",
+      "userName": "Amit Verma",
+      "timelineSteps": [
+        {
+          "status": "SUBMITTED",
+          "label": "Submitted",
+          "date": "Aug 20, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "UNDER_REVIEW",
+          "label": "Under Review",
+          "date": "Aug 21, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "ASSIGNED",
+          "label": "Assigned",
+          "date": null,
+          "isCompleted": false
+        },
+        {
+          "status": "IN_PROGRESS",
+          "label": "In Progress",
+          "date": null,
+          "isCompleted": false
+        },
+        {
+          "status": "RESOLVED",
+          "label": "Resolved",
+          "date": null,
+          "isCompleted": false
+        }
+      ],
+      "createdAt": "2026-08-20T14:45:00Z"
+    },
+    {
+      "id": "r4",
+      "title": "Water Leakage on Road",
+      "description": "Major water pipe burst on the main road. Water wasting for 2 days.",
+      "category": "Water Leakage",
+      "location": "Sector 5, Navi Mumbai",
+      "date": "Aug 21, 2026",
+      "status": "SUBMITTED",
+      "imageUrl": "/uploads/stock_water.jpg",
+      "userId": "user_4",
+      "userName": "Neha Deshmukh",
+      "timelineSteps": [
+        {
+          "status": "SUBMITTED",
+          "label": "Submitted",
+          "date": "Aug 21, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "UNDER_REVIEW",
+          "label": "Under Review",
+          "date": null,
+          "isCompleted": false
+        },
+        {
+          "status": "ASSIGNED",
+          "label": "Assigned",
+          "date": null,
+          "isCompleted": false
+        },
+        {
+          "status": "IN_PROGRESS",
+          "label": "In Progress",
+          "date": null,
+          "isCompleted": false
+        },
+        {
+          "status": "RESOLVED",
+          "label": "Resolved",
+          "date": null,
+          "isCompleted": false
+        }
+      ],
+      "createdAt": "2026-08-21T08:10:00Z"
+    },
+    {
+      "id": "r5",
+      "title": "Damaged Road Divider",
+      "description": "Road divider completely broken, causing safety hazard for motorists.",
+      "category": "Road Damage",
+      "location": "Palm Beach Road, Navi Mumbai",
+      "date": "Aug 10, 2026",
+      "status": "RESOLVED",
+      "imageUrl": "/uploads/stock_road.jpg",
+      "userId": "user_1",
+      "userName": "Rahul Sharma",
+      "timelineSteps": [
+        {
+          "status": "SUBMITTED",
+          "label": "Submitted",
+          "date": "Aug 10, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "UNDER_REVIEW",
+          "label": "Under Review",
+          "date": "Aug 11, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "ASSIGNED",
+          "label": "Assigned",
+          "date": "Aug 12, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "IN_PROGRESS",
+          "label": "In Progress",
+          "date": "Aug 13, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "RESOLVED",
+          "label": "Resolved",
+          "date": "Aug 15, 2026",
+          "isCompleted": true
+        }
+      ],
+      "createdAt": "2026-08-10T16:00:00Z"
+    },
+    {
+      "id": "r6",
+      "title": "Blocked Drainage",
+      "description": "Drainage is blocked causing waterlogging in the area after rain.",
+      "category": "Drainage",
+      "location": "Sector 9, Navi Mumbai",
+      "date": "Aug 22, 2026",
+      "status": "SUBMITTED",
+      "imageUrl": "/uploads/stock_drainage.jpg",
+      "userId": "guest",
+      "userName": "Guest",
+      "timelineSteps": [
+        {
+          "status": "SUBMITTED",
+          "label": "Submitted",
+          "date": "Aug 22, 2026",
+          "isCompleted": true
+        },
+        {
+          "status": "UNDER_REVIEW",
+          "label": "Under Review",
+          "date": null,
+          "isCompleted": false
+        },
+        {
+          "status": "ASSIGNED",
+          "label": "Assigned",
+          "date": null,
+          "isCompleted": false
+        },
+        {
+          "status": "IN_PROGRESS",
+          "label": "In Progress",
+          "date": null,
+          "isCompleted": false
+        },
+        {
+          "status": "RESOLVED",
+          "label": "Resolved",
+          "date": null,
+          "isCompleted": false
+        }
+      ],
+      "createdAt": "2026-08-22T12:20:00Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat1",
+      "name": "Pothole",
+      "description": "Road potholes & craters",
+      "iconName": "Road"
+    },
+    {
+      "id": "cat2",
+      "name": "Garbage",
+      "description": "Waste & dumping issues",
+      "iconName": "DeleteSweep"
+    },
+    {
+      "id": "cat3",
+      "name": "Streetlight",
+      "description": "Lighting problems",
+      "iconName": "LightMode"
+    },
+    {
+      "id": "cat4",
+      "name": "Water Leakage",
+      "description": "Pipe leaks & bursts",
+      "iconName": "WaterDrop"
+    },
+    {
+      "id": "cat5",
+      "name": "Drainage",
+      "description": "Blocked drains & flooding",
+      "iconName": "InvertColors"
+    },
+    {
+      "id": "cat6",
+      "name": "Road Damage",
+      "description": "Road surface damage",
+      "iconName": "Construction"
+    },
+    {
+      "id": "cat7",
+      "name": "Public Property",
+      "description": "Damaged public assets",
+      "iconName": "AccountBalance"
+    },
+    {
+      "id": "cat8",
+      "name": "Other",
+      "description": "Other civic issues",
+      "iconName": "MoreHoriz"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "n1",
+      "title": "Report Under Review",
+      "message": "Your pothole report on Main Road is now under review by the municipal team.",
+      "time": "2 hours ago",
+      "isRead": false,
+      "type": "STATUS_UPDATE",
+      "reportId": "r1",
+      "userId": "user_1",
+      "createdAt": "2026-08-24T21:00:00Z"
+    },
+    {
+      "id": "n2",
+      "title": "Issue Resolved!",
+      "message": "Great news! Your garbage report near Market Road has been resolved.",
+      "time": "1 day ago",
+      "isRead": false,
+      "type": "RESOLVED",
+      "reportId": "r2",
+      "userId": "user_2",
+      "createdAt": "2026-08-23T10:00:00Z"
+    },
+    {
+      "id": "n3",
+      "title": "New Issue Nearby",
+      "message": "A new water leakage issue has been reported near your area in Sector 5.",
+      "time": "2 days ago",
+      "isRead": true,
+      "type": "NEW_ISSUE",
+      "reportId": "r4",
+      "userId": "user_1",
+      "createdAt": "2026-08-22T09:00:00Z"
+    },
+    {
+      "id": "n4",
+      "title": "Report Assigned",
+      "message": "Your broken streetlight report has been assigned to the electrical team.",
+      "time": "3 days ago",
+      "isRead": true,
+      "type": "STATUS_UPDATE",
+      "reportId": "r3",
+      "userId": "user_3",
+      "createdAt": "2026-08-21T15:00:00Z"
+    },
+    {
+      "id": "n5",
+      "title": "Community Update",
+      "message": "FixMyCity resolved 45 issues in Navi Mumbai this month. Thank you for your contribution!",
+      "time": "5 days ago",
+      "isRead": true,
+      "type": "GENERAL",
+      "reportId": null,
+      "userId": "user_1",
+      "createdAt": "2026-08-19T08:00:00Z"
+    }
+  ]
+}

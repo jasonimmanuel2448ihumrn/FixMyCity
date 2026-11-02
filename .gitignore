@@ -1,0 +1,74 @@
+# =========================================================================
+# Android & Gradle
+# =========================================================================
+*.apk
+*.aar
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Build directories
+build/
+app/build/
+.gradle/
+buildOutputCleanup/
+
+# Android Studio / IntelliJ IDEA
+*.iml
+.idea/
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/deploymentTargetSelector.xml
+
+# Kotlin
+.kotlin/
+
+# Local properties (SDK paths, local secrets)
+local.properties
+
+# Log & temp files
+*.log
+.navigation/
+captures/
+.lo_tmp/
+.DS_Store
+Thumbs.db
+
+# Keystores & release certificates
+*.keystore
+*.jks
+
+# =========================================================================
+# Backend & Node.js
+# =========================================================================
+node_modules/
+backend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================================================================
+# Python & Servers
+# =========================================================================
+__pycache__/
+server/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# =========================================================================
+# Sensitive Credentials (DO NOT COMMIT)
+# =========================================================================
+backend/serviceAccountKey.json
+serviceAccountKey.json
+
+# Dynamic User Uploads (keep stock fallback images)
+server/uploads/report_*
+backend/uploads/report_*
