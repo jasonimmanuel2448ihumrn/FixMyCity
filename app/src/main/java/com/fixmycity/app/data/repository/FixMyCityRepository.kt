@@ -104,34 +104,25 @@ class FixMyCityRepository private constructor() {
     // ── Reports ───────────────────────────────────────────────────────────────
     suspend fun fetchReports(): List<Report> = withContext(Dispatchers.IO) {
         try {
-            val snapshot = firestore.collection("reports")
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .get()
-                .await()
+            val snapshot = firestore.collection("reports").get().await()
             val liveReports = snapshot.documents.mapNotNull { doc ->
                 documentToReport(doc.id, doc.data ?: return@mapNotNull null)
-            }.filterNot { it.isDummyReport() }
-            _reports.value = liveReports
-            calculateAndEmitStats(liveReports)
+            }.filterNot { it.isDummyReport() }.sortedByDescending { it.createdAt }
+
+            // Retain any locally queued reports that haven't propagated to Firestore yet
+            val liveIds = liveReports.map { it.id }.toSet()
+            val localPending = _reports.value.filter { it.id !in liveIds && !it.isDummyReport() }
+            val mergedReports = (liveReports + localPending).sortedByDescending { it.createdAt }
+
+            _reports.value = mergedReports
+            calculateAndEmitStats(mergedReports)
             _isBackendConnected.value = true
-            return@withContext _reports.value
+            return@withContext mergedReports
         } catch (e: Exception) {
-            Log.w(TAG, "fetchReports with orderBy failed: ${e.message}, falling back to plain get...")
-            try {
-                val snapshot = firestore.collection("reports").get().await()
-                val liveReports = snapshot.documents.mapNotNull { doc ->
-                    documentToReport(doc.id, doc.data ?: return@mapNotNull null)
-                }.filterNot { it.isDummyReport() }.sortedByDescending { it.createdAt }
-                _reports.value = liveReports
-                calculateAndEmitStats(liveReports)
-                _isBackendConnected.value = true
-                return@withContext _reports.value
-            } catch (e2: Exception) {
-                Log.w(TAG, "fetchReports fallback failed: ${e2.message}")
-                _isBackendConnected.value = false
-            }
+            Log.w(TAG, "fetchReports failed: ${e.message}")
+            _isBackendConnected.value = false
+            return@withContext _reports.value
         }
-        return@withContext _reports.value
     }
 
     suspend fun fetchMyReports(): List<Report> = withContext(Dispatchers.IO) {
@@ -139,15 +130,14 @@ class FixMyCityRepository private constructor() {
         try {
             val snapshot = firestore.collection("reports")
                 .whereEqualTo("userId", uid)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
             return@withContext snapshot.documents.mapNotNull { doc ->
                 documentToReport(doc.id, doc.data ?: return@mapNotNull null)
-            }
+            }.sortedByDescending { it.createdAt }
         } catch (e: Exception) {
             Log.w(TAG, "fetchMyReports failed: ${e.message}")
-            return@withContext _reports.value.filter { it.userId == uid }
+            return@withContext _reports.value.filter { it.userId == uid }.sortedByDescending { it.createdAt }
         }
     }
 
@@ -174,6 +164,13 @@ class FixMyCityRepository private constructor() {
         latitude: Double? = null,
         longitude: Double? = null
     ): Result<Report> = withContext(Dispatchers.IO) {
+        if (firebaseAuth.currentUser == null) {
+            try {
+                firebaseAuth.signInAnonymously().await()
+            } catch (e: Exception) {
+                Log.w(TAG, "Anonymous sign-in on report: ${e.message}")
+            }
+        }
         val uid: String = firebaseAuth.currentUser?.uid ?: "guest_${System.currentTimeMillis()}"
         val authorName: String = _currentUser.value.name.takeIf { it.isNotBlank() } ?: "Citizen"
         val currentDate: String = formatCurrentDate()
@@ -414,13 +411,14 @@ class FixMyCityRepository private constructor() {
                 )
             }
 
-            // Update Firestore document
-            firestore.collection("reports").document(reportId).update(
-                mapOf<String, Any?>(
-                    "status" to newStatus.name,
-                    "timelineSteps" to updatedTimelineData
-                )
-            ).await()
+            // Update Firestore document with merge so it creates or updates safely
+            val updatePayload = mapOf<String, Any?>(
+                "status" to newStatus.name,
+                "timelineSteps" to updatedTimelineData
+            )
+            firestore.collection("reports").document(reportId)
+                .set(updatePayload, SetOptions.merge())
+                .await()
 
             val updated: Report = currentReport.copy(status = newStatus, timelineSteps = updatedTimeline)
             _reports.value = _reports.value.map { if (it.id == reportId) updated else it }
@@ -441,14 +439,7 @@ class FixMyCityRepository private constructor() {
             _isBackendConnected.value = true
             return@withContext Result.success(updated)
         } catch (e: Exception) {
-            Log.w(TAG, "updateReportStatus failed: ${e.message}")
-            val current: Report? = _reports.value.find { it.id == reportId }
-            if (current != null) {
-                val updated: Report = current.copy(status = newStatus)
-                _reports.value = _reports.value.map { if (it.id == reportId) updated else it }
-                calculateAndEmitStats(_reports.value)
-                return@withContext Result.success(updated)
-            }
+            Log.e(TAG, "updateReportStatus failed: ${e.message}", e)
             return@withContext Result.failure(e)
         }
     }
@@ -838,12 +829,7 @@ class FixMyCityRepository private constructor() {
                 val uid = doc.getString("userId") ?: continue
                 val uName = doc.getString("userName")?.takeIf { it.isNotBlank() } ?: "Citizen"
                 val dummyUserIds = setOf("user_1", "user_2", "user_3", "user_4", "user_5", "user_6", "user_7", "user_8", "municipal_officer_001")
-                val dummyNames = setOf(
-                    "Rahul Sharma", "Priya Mehta", "Amit Patil", "Sneha Joshi",
-                    "Vikram Deshmukh", "Kavita Nair", "Rohan Kulkarni", "Meera Iyer",
-                    "Amit Verma", "Sneha Patel", "Rajesh Kumar", "Officer Rajesh Patil"
-                )
-                if (uid in dummyUserIds || uName in dummyNames || uid.isBlank()) continue
+                if (uid in dummyUserIds || uid.startsWith("seed_") || uid.isBlank()) continue
 
                 val isGuest = uid.startsWith("guest") || uName.contains("guest", ignoreCase = true)
                 if (!userMap.containsKey(uid)) {
@@ -952,7 +938,7 @@ class FixMyCityRepository private constructor() {
     /** Convert raw Firestore data map to Report model */
     private fun documentToReport(docId: String, data: Map<String, Any?>): Report? {
         return try {
-            val statusStr: String = data["status"] as? String ?: "SUBMITTED"
+            val statusStr: String = (data["status"] as? String)?.trim()?.uppercase()?.replace(' ', '_') ?: "SUBMITTED"
             val status: ReportStatus = runCatching { ReportStatus.valueOf(statusStr) }
                 .getOrElse { ReportStatus.SUBMITTED }
 
@@ -960,7 +946,7 @@ class FixMyCityRepository private constructor() {
             val stepsRaw: List<Map<String, Any?>> =
                 data["timelineSteps"] as? List<Map<String, Any?>> ?: emptyList()
             val timelineSteps: List<TimelineStep> = stepsRaw.mapNotNull { step ->
-                val stepStatusStr: String = step["status"] as? String ?: return@mapNotNull null
+                val stepStatusStr: String = (step["status"] as? String)?.trim()?.uppercase()?.replace(' ', '_') ?: return@mapNotNull null
                 val stepStatus: ReportStatus = runCatching { ReportStatus.valueOf(stepStatusStr) }
                     .getOrElse { ReportStatus.SUBMITTED }
                 TimelineStep(
@@ -983,7 +969,7 @@ class FixMyCityRepository private constructor() {
                 userId = data["userId"] as? String ?: "",
                 userName = data["userName"] as? String ?: "Citizen",
                 timelineSteps = timelineSteps,
-                createdAt = data["createdAt"] as? Long ?: 0L,
+                createdAt = (data["createdAt"] as? Number)?.toLong() ?: 0L,
                 latitude = (data["latitude"] as? Number)?.toDouble(),
                 longitude = (data["longitude"] as? Number)?.toDouble()
             )
@@ -1057,21 +1043,10 @@ class FixMyCityRepository private constructor() {
 
 fun Report.isDummyReport(): Boolean {
     val dummyReportIds = setOf("r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8")
-    val dummyUserIds = setOf("user_1", "user_2", "user_3", "user_4", "user_5", "user_6", "user_7", "user_8", "u1", "u2", "u3", "u4", "u5")
-    val dummyNames = setOf(
-        "Rahul Sharma", "Priya Mehta", "Amit Patil", "Sneha Joshi",
-        "Vikram Deshmukh", "Kavita Nair", "Rohan Kulkarni", "Meera Iyer",
-        "Amit Verma", "Sneha Patel", "Rajesh Kumar"
-    )
-    return id in dummyReportIds || userId in dummyUserIds || userName in dummyNames
+    return id in dummyReportIds
 }
 
 fun User.isDummyUser(): Boolean {
     val dummyUserIds = setOf("user_1", "user_2", "user_3", "user_4", "user_5", "user_6", "user_7", "user_8", "u1", "u2", "u3", "u4", "u5", "municipal_officer_001")
-    val dummyNames = setOf(
-        "Rahul Sharma", "Priya Mehta", "Amit Patil", "Sneha Joshi",
-        "Vikram Deshmukh", "Kavita Nair", "Rohan Kulkarni", "Meera Iyer",
-        "Amit Verma", "Sneha Patel", "Rajesh Kumar", "Officer Rajesh Patil"
-    )
-    return id in dummyUserIds || name in dummyNames || email.equals("municipal@fixmycity.org", ignoreCase = true)
+    return id in dummyUserIds || id.startsWith("seed_") || email.equals("municipal@fixmycity.org", ignoreCase = true)
 }

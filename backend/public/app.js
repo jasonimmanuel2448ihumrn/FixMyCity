@@ -84,19 +84,19 @@ function setupEventListeners() {
 
 async function loadAllData() {
   try {
-    const [reportsRes, catRes, notifRes, statsRes, meRes] = await Promise.all([
+    const [reportsRes, catRes, notifRes, statsRes, usersRes] = await Promise.all([
       fetch(`${API_BASE}/reports`),
       fetch(`${API_BASE}/categories`),
       fetch(`${API_BASE}/notifications`),
       fetch(`${API_BASE}/stats`),
-      fetch(`${API_BASE}/auth/me`)
+      fetch(`${API_BASE}/users`).catch(() => null)
     ]);
 
     state.reports = await reportsRes.json();
     state.categories = await catRes.json();
     state.notifications = await notifRes.json();
     state.stats = await statsRes.json();
-    state.users = [await meRes.json().then(d => d.user).catch(() => ({}))];
+    state.users = usersRes ? await usersRes.json().catch(() => []) : [];
 
     renderStats();
     populateCategoryFilters();

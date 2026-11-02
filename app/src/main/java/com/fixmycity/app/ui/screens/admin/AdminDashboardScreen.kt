@@ -75,6 +75,7 @@ fun AdminDashboardScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedStatusFilter by remember { mutableStateOf("All") }
     var selectedCategoryFilter by remember { mutableStateOf("All") }
+    var isRefreshing by remember { mutableStateOf(false) }
 
     // Users list
     var usersList by remember { mutableStateOf<List<User>>(emptyList()) }
@@ -179,14 +180,30 @@ fun AdminDashboardScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        scope.launch {
-                            repository.refreshAll()
-                            usersList = repository.fetchAllUsers()
-                            snackbarHostState.showSnackbar("Data refreshed from database")
+                    IconButton(
+                        onClick = {
+                            if (!isRefreshing) {
+                                scope.launch {
+                                    isRefreshing = true
+                                    repository.refreshAll()
+                                    usersList = repository.fetchAllUsers()
+                                    isRefreshing = false
+                                    val count = repository.reports.value.filterNot { it.isDummyReport() }.size
+                                    snackbarHostState.showSnackbar("Data refreshed: $count reports loaded from database")
+                                }
+                            }
+                        },
+                        enabled = !isRefreshing
+                    ) {
+                        if (isRefreshing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = Primary
+                            )
+                        } else {
+                            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                         }
-                    }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
                     IconButton(onClick = onNavigateToCitizenView) {
                         Icon(Icons.Default.RemoveRedEye, contentDescription = "Citizen View", tint = Primary)
@@ -364,7 +381,8 @@ fun AdminDashboardScreen(
                             if (result.isSuccess) {
                                 snackbarHostState.showSnackbar("Report #${targetReport.id.uppercase()} updated to ${newStatusSelection.name.replace('_', ' ')}")
                             } else {
-                                snackbarHostState.showSnackbar("Failed to update status")
+                                val err = result.exceptionOrNull()?.message ?: "Update failed"
+                                snackbarHostState.showSnackbar("Failed to update status: $err")
                             }
                         }
                     },
