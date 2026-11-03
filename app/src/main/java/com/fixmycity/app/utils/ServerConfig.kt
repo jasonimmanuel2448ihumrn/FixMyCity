@@ -22,7 +22,7 @@ object ServerConfig {
 
     const val DEFAULT_PORT = 8080
     const val DEFAULT_EMULATOR_HOST = "10.0.2.2"
-    const val DEFAULT_LAN_HOST = "192.168.0.135"
+    const val DEFAULT_LAN_HOST = "10.199.141.91"
 
     /**
      * Determines whether the app is executing inside an Android Virtual Device / Emulator.
