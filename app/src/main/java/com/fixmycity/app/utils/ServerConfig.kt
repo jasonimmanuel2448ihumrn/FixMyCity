@@ -430,7 +430,7 @@ object ServerConfig {
             val resolved = areaReports.count { it.status == ReportStatus.RESOLVED }
             val inProgress = areaReports.count { it.status == ReportStatus.IN_PROGRESS || it.status == ReportStatus.ASSIGNED }
             val underReview = areaReports.count { it.status == ReportStatus.UNDER_REVIEW || it.status == ReportStatus.SUBMITTED }
-            val resRate = if (total > 0) ((resolved.toDouble() / total) * 100).toInt() else 0
+            val resRate = if (total > 0) ((resolved.toDouble() / total) * 100).toInt().coerceIn(0, 100) else 0
 
             val bullets = areaReports.take(4).joinToString("\n") { r ->
                 val emoji = when (r.status) {

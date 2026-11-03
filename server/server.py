@@ -266,7 +266,7 @@ def generate_fallback_ai_response(query, reports, user_id, user_name):
             bullet_lines.append(f"• **#{r.get('id', '').upper()}** [{r.get('category')}]: \"{r.get('title')}\" ({status_emoji} {r.get('status', '').replace('_', ' ')})\n  _{r.get('location')}_")
 
         bullets_text = "\n".join(bullet_lines)
-        res_rate = int((resolved / total) * 100) if total > 0 else 0
+        res_rate = max(0, min(100, int((resolved / total) * 100))) if total > 0 else 0
 
         text = (
             f"📊 **Live Grievance Summary for {area_title}**\n\n"
@@ -430,21 +430,129 @@ CRITICAL RULES:
 - FORMATTING RULE: Do NOT use ** to bold words. Do not use double asterisks. Use clean plain text with emojis and bullet points only.
 """
     elif is_summary_query:
-        reports_context = []
-        for idx, r in enumerate(reports[:30]):
-            r_id = r.get("id", f"r{idx+1}").upper()
-            title = r.get("title", "")
-            cat = r.get("category", "")
-            loc = r.get("location", "")
-            status = r.get("status", "SUBMITTED")
-            desc = (r.get("description", "") or "")[:120].replace("\n", " ")
-            reports_context.append(f"- #{r_id} [{cat}] '{title}' at {loc} | Status: {status} | Details: {desc}")
+        areas = ["vashi", "belapur", "nerul", "koparkhairane", "kharghar", "airoli", "sanpada", "ghansoli", "seawoods", "panvel", "sector 17", "sector 10", "sector 5", "sector 20", "sector 3", "sector 9", "palm beach", "market"]
+        categories = ["pothole", "garbage", "streetlight", "water leakage", "water", "drainage", "road damage", "road", "public property"]
+        matched_area = next((a for a in areas if a in lower_msg), None)
+        matched_cat = next((c for c in categories if c in lower_msg), None)
 
-        context_str = "\n".join(reports_context) if reports_context else "No active reports."
+        if matched_area:
+            area_reports = [r for r in reports if matched_area in (r.get("location", "") + " " + r.get("title", "")).lower()]
+            area_title = matched_area.title()
+            total = len(area_reports)
+            resolved = sum(1 for r in area_reports if r.get("status") == "RESOLVED")
+            in_prog = sum(1 for r in area_reports if r.get("status") in ["IN_PROGRESS", "ASSIGNED"])
+            under_rev = sum(1 for r in area_reports if r.get("status") in ["UNDER_REVIEW", "SUBMITTED"])
 
-        rag_prompt = f"""You are FixMyCity Civic AI Copilot, an intelligent civic assistant for municipal grievance analytics.
+            if total == 0:
+                clean_resp = f"📍 Civic Summary for {area_title}\n\nCurrently, there are 0 active complaints logged specifically in {area_title}.\n\nIf you notice an infrastructure defect (such as a pothole, broken streetlight, or garbage dump), you can be the first to report it to municipal authorities!"
+                return {
+                    "status": "success",
+                    "response": clean_resp,
+                    "source": "local_engine",
+                    "model": "Civic Intelligence Engine",
+                    "actionType": "REPORT_ISSUE",
+                    "actionLabel": f"Report Issue in {area_title}",
+                    "actionPayload": None
+                }
 
---- LIVE GRIEVANCE DATABASE ({len(reports)} records) ---
+            reports_context = []
+            for idx, r in enumerate(area_reports[:10]):
+                r_id = r.get("id", f"r{idx+1}").upper()
+                title = r.get("title", "")
+                cat = r.get("category", "")
+                loc = r.get("location", "")
+                status = r.get("status", "SUBMITTED")
+                desc = (r.get("description", "") or "")[:100].replace("\n", " ")
+                reports_context.append(f"- #{r_id} [{cat}] '{title}' at {loc} | Status: {status} | Details: {desc}")
+            context_str = "\n".join(reports_context)
+
+            rag_prompt = f"""You are FixMyCity Civic AI Copilot, an intelligent civic assistant for municipal grievance analytics.
+
+--- VERIFIED GRIEVANCE DATABASE FOR {area_title.upper()} ({total} records) ---
+EXACT VERIFIED STATISTICS:
+- Total complaints in {area_title}: {total}
+- Resolved: {resolved}
+- In Progress: {in_prog}
+- Under Review: {under_rev}
+
+Matching Complaints in {area_title}:
+{context_str}
+
+Citizen Name: {user_name}
+User Query: "{message}"
+
+INSTRUCTIONS:
+1. Provide a concise summary of reports in {area_title}.
+2. State the EXACT verified total of {total} complaints found in {area_title} ({resolved} resolved, {in_prog} in progress, {under_rev} under review).
+3. UNDER NO CIRCUMSTANCES state numbers greater than {total} or numbers beyond 100. The true count in {area_title} is strictly {total}.
+4. Mention the specific complaint IDs from the records above.
+5. FORMATTING RULE: Do NOT use ** to bold words. Do not use double asterisks. Use clean plain text with emojis and bullet points only.
+"""
+        elif matched_cat:
+            cat_reports = [r for r in reports if matched_cat in r.get("category", "").lower()]
+            cat_name = matched_cat.title()
+            total = len(cat_reports)
+            resolved = sum(1 for r in cat_reports if r.get("status") == "RESOLVED")
+            in_prog = sum(1 for r in cat_reports if r.get("status") in ["IN_PROGRESS", "ASSIGNED"])
+            under_rev = sum(1 for r in cat_reports if r.get("status") in ["UNDER_REVIEW", "SUBMITTED"])
+
+            reports_context = []
+            for idx, r in enumerate(cat_reports[:10]):
+                r_id = r.get("id", f"r{idx+1}").upper()
+                title = r.get("title", "")
+                loc = r.get("location", "")
+                status = r.get("status", "SUBMITTED")
+                reports_context.append(f"- #{r_id} '{title}' at {loc} | Status: {status}")
+            context_str = "\n".join(reports_context) if reports_context else "No active reports."
+
+            rag_prompt = f"""You are FixMyCity Civic AI Copilot, an intelligent civic assistant for municipal grievance analytics.
+
+--- VERIFIED DATABASE FOR {cat_name.upper()} COMPLAINTS ({total} records) ---
+EXACT VERIFIED STATISTICS:
+- Total {cat_name} complaints: {total}
+- Resolved: {resolved}
+- In Progress: {in_prog}
+- Under Review: {under_rev}
+
+Records:
+{context_str}
+
+Citizen Name: {user_name}
+User Query: "{message}"
+
+INSTRUCTIONS:
+1. State the EXACT verified total of {total} {cat_name} complaints across the city.
+2. Breakdown: {resolved} resolved, {in_prog} in progress, {under_rev} under review.
+3. UNDER NO CIRCUMSTANCES state numbers greater than {total} or numbers beyond 100.
+4. FORMATTING RULE: Do NOT use ** to bold words. Do not use double asterisks. Use clean plain text with emojis and bullet points only.
+"""
+        else:
+            total = len(reports)
+            resolved = sum(1 for r in reports if r.get("status") == "RESOLVED")
+            in_prog = sum(1 for r in reports if r.get("status") in ["IN_PROGRESS", "ASSIGNED"])
+            under_rev = sum(1 for r in reports if r.get("status") in ["UNDER_REVIEW", "SUBMITTED"])
+
+            reports_context = []
+            for idx, r in enumerate(reports[:15]):
+                r_id = r.get("id", f"r{idx+1}").upper()
+                title = r.get("title", "")
+                cat = r.get("category", "")
+                loc = r.get("location", "")
+                status = r.get("status", "SUBMITTED")
+                desc = (r.get("description", "") or "")[:100].replace("\n", " ")
+                reports_context.append(f"- #{r_id} [{cat}] '{title}' at {loc} | Status: {status} | Details: {desc}")
+            context_str = "\n".join(reports_context) if reports_context else "No active reports."
+
+            rag_prompt = f"""You are FixMyCity Civic AI Copilot, an intelligent civic assistant for municipal grievance analytics.
+
+--- LIVE GRIEVANCE DATABASE ({total} records) ---
+EXACT VERIFIED STATISTICS:
+- Total complaints: {total}
+- Resolved: {resolved}
+- In Progress: {in_prog}
+- Under Review: {under_rev}
+
+Recent Complaints:
 {context_str}
 
 Citizen Name: {user_name}
@@ -452,11 +560,11 @@ User Query: "{message}"
 
 INSTRUCTIONS:
 The user explicitly asked to summarize civic reports.
-1. Provide a concise summary of the reports in the requested area or category.
-2. State the total complaints found, with status breakdown (Resolved vs In Progress vs Under Review).
-3. Highlight 2 to 4 notable incident IDs (e.g. #R1), location, and current progress.
-4. Offer helpful civic advice or recommendations.
-5. FORMATTING RULE: Do NOT use ** to bold words. Do not use double asterisks. Use clean plain text, emojis, and bullet points only. Never fabricate complaints that are not in the database.
+1. State the EXACT total count of {total} complaints found in the database.
+2. Breakdown: {resolved} resolved, {in_prog} in progress, {under_rev} under review.
+3. Highlight 2 to 4 notable incident IDs from the records above.
+4. UNDER NO CIRCUMSTANCES state numbers greater than {total} or fabricate numbers beyond 100.
+5. FORMATTING RULE: Do NOT use ** to bold words. Do not use double asterisks. Use clean plain text, emojis, and bullet points only.
 """
     else:
         reports_context = []

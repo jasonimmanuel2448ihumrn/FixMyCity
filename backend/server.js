@@ -567,25 +567,76 @@ CRITICAL RULES:
 - If they mentioned what specific problem they have, confirm and reassure them that city field crews will inspect it.
 - Keep the response concise, formatted with markdown and emojis.`;
   } else if (isSummaryQuery) {
-    const reportsContext = activeReports.slice(0, 30).map((r, i) =>
-      `- #${(r.id || 'r' + (i + 1)).toUpperCase()} [${r.category}] '${r.title}' at ${r.location} | Status: ${r.status} | Details: ${(r.description || '').slice(0, 100)}`
-    ).join('\n');
+    const areas = ['vashi', 'belapur', 'nerul', 'koparkhairane', 'kharghar', 'airoli', 'sanpada', 'ghansoli', 'seawoods', 'panvel', 'sector 17', 'sector 10', 'sector 5', 'sector 20', 'sector 3', 'sector 9', 'palm beach', 'market'];
+    const matchedArea = areas.find(a => lowerMsg.includes(a));
 
-    ragPrompt = `You are FixMyCity Civic AI Copilot, an intelligent civic assistant for municipal grievance analytics.
+    if (matchedArea) {
+      const areaReports = activeReports.filter(r =>
+        ((r.location || '') + ' ' + (r.title || '')).toLowerCase().includes(matchedArea)
+      );
+      const areaTitle = matchedArea.charAt(0).toUpperCase() + matchedArea.slice(1);
+      const total = areaReports.length;
+      const resolved = areaReports.filter(r => r.status === 'RESOLVED').length;
+      const inProg = areaReports.filter(r => r.status === 'IN_PROGRESS' || r.status === 'ASSIGNED').length;
+      const underRev = areaReports.filter(r => r.status === 'UNDER_REVIEW' || r.status === 'SUBMITTED').length;
 
---- LIVE GRIEVANCE DATABASE (${activeReports.length} records) ---
+      const reportsContext = areaReports.slice(0, 10).map((r, i) =>
+        `- #${(r.id || 'r' + (i + 1)).toUpperCase()} [${r.category}] '${r.title}' at ${r.location} | Status: ${r.status} | Details: ${(r.description || '').slice(0, 100)}`
+      ).join('\n');
+
+      ragPrompt = `You are FixMyCity Civic AI Copilot, an intelligent civic assistant for municipal grievance analytics.
+
+--- VERIFIED GRIEVANCE DATABASE FOR ${areaTitle.toUpperCase()} (${total} records) ---
+EXACT VERIFIED STATISTICS:
+- Total complaints in ${areaTitle}: ${total}
+- Resolved: ${resolved}
+- In Progress: ${inProg}
+- Under Review: ${underRev}
+
+Matching Complaints in ${areaTitle}:
+${reportsContext || 'No records found.'}
+
+Citizen Name: ${userName || 'Citizen'}
+Query: "${message.trim()}"
+
+INSTRUCTIONS:
+1. Provide a concise summary of reports in ${areaTitle}.
+2. State the EXACT verified total of ${total} complaints found in ${areaTitle} (${resolved} resolved, ${inProg} in progress, ${underRev} under review).
+3. UNDER NO CIRCUMSTANCES state numbers greater than ${total} or numbers beyond 100. The true count in ${areaTitle} is strictly ${total}.
+4. Mention the specific complaint IDs from the records above.
+5. Format with bold markdown headers and clean bullet points.`;
+    } else {
+      const total = activeReports.length;
+      const resolved = activeReports.filter(r => r.status === 'RESOLVED').length;
+      const inProg = activeReports.filter(r => r.status === 'IN_PROGRESS' || r.status === 'ASSIGNED').length;
+      const underRev = activeReports.filter(r => r.status === 'UNDER_REVIEW' || r.status === 'SUBMITTED').length;
+
+      const reportsContext = activeReports.slice(0, 15).map((r, i) =>
+        `- #${(r.id || 'r' + (i + 1)).toUpperCase()} [${r.category}] '${r.title}' at ${r.location} | Status: ${r.status} | Details: ${(r.description || '').slice(0, 100)}`
+      ).join('\n');
+
+      ragPrompt = `You are FixMyCity Civic AI Copilot, an intelligent civic assistant for municipal grievance analytics.
+
+--- LIVE GRIEVANCE DATABASE (${total} records) ---
+EXACT VERIFIED STATISTICS:
+- Total complaints: ${total}
+- Resolved: ${resolved}
+- In Progress: ${inProg}
+- Under Review: ${underRev}
+
+Live Records:
 ${reportsContext || 'No active reports.'}
 
 Citizen Name: ${userName || 'Citizen'}
 Query: "${message.trim()}"
 
 INSTRUCTIONS:
-The user explicitly asked to summarize civic reports.
-1. Provide a concise summary of the reports in the requested area or category.
-2. State the total complaints found, with status breakdown (Resolved vs In Progress vs Under Review).
-3. Highlight 2 to 4 notable incident IDs (e.g. #R1), location, and current progress.
-4. Offer helpful civic advice or recommendations.
-5. Format with bold markdown headers and bullet points. Never fabricate complaints that are not in the database.`;
+1. Provide a concise summary of the reports in the database.
+2. State the EXACT total count of ${total} complaints found (Resolved: ${resolved}, In Progress: ${inProg}, Under Review: ${underRev}).
+3. UNDER NO CIRCUMSTANCES state numbers greater than ${total} or fabricate numbers beyond 100.
+4. Highlight 2 to 4 notable incident IDs, location, and current progress.
+5. Format with bold markdown headers and clean bullet points.`;
+    }
   } else {
     const reportsContext = activeReports.slice(0, 15).map((r, i) =>
       `- #${(r.id || 'r' + (i + 1)).toUpperCase()} [${r.category}] '${r.title}' at ${r.location} (${r.status})`
